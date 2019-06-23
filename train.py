@@ -13,11 +13,13 @@ from config import config
 from collections import OrderedDict
 from torch.autograd import Variable
 from torch.utils.data import DataLoader
-from dataset.dataloader import *
+from dataset.remote_dataloader import RemoteDataLoader, get_files, collate_fn
 from sklearn.model_selection import train_test_split, StratifiedKFold
 from timeit import default_timer as timer
-from models.model import *
-from utils import *
+from model.resnet import getResnet
+from tqdm import tqdm
+from utils.utils import *
+from loss import FocalLoss
 
 # 1. set random.seed and cudnn performance
 random.seed(config.seed)
@@ -108,13 +110,13 @@ def main():
     if not os.path.exists(config.best_models + config.model_name + os.sep + str(fold) + os.sep):
         os.makedirs(config.best_models + config.model_name + os.sep + str(fold) + os.sep)
         # 4.2 get model and optimizer
-    model = get_net()
+    model = getResnet(config.model_name)
     # model = torch.nn.DataParallel(model)
     model.cuda()
     # optimizer = optim.SGD(model.parameters(),lr = config.lr,momentum=0.9,weight_decay=config.weight_decay)
     optimizer = optim.Adam(model.parameters(), lr=config.lr, amsgrad=True, weight_decay=config.weight_decay)
-    criterion = nn.CrossEntropyLoss().cuda()
-    # criterion = FocalLoss().cuda()
+    # criterion = nn.CrossEntropyLoss().cuda()
+    criterion = FocalLoss().cuda()
     log = Logger()
     log.open(config.logs + "log_train.txt", mode="a")
     log.write("\n----------------------------------------------- [START %s] %s\n\n" % (
@@ -152,11 +154,11 @@ def main():
     """
     train_data_list, val_data_list = train_test_split(train_, test_size=0.15, stratify=train_["label"])
     # 4.5.4 load dataset
-    train_dataloader = DataLoader(ChaojieDataset(train_data_list), batch_size=config.batch_size, shuffle=True,
+    train_dataloader = DataLoader(RemoteDataLoader(train_data_list), batch_size=config.batch_size, shuffle=True,
                                   collate_fn=collate_fn, pin_memory=True)
-    val_dataloader = DataLoader(ChaojieDataset(val_data_list, train=False), batch_size=config.batch_size, shuffle=True,
+    val_dataloader = DataLoader(RemoteDataLoader(val_data_list, train=False), batch_size=config.batch_size, shuffle=True,
                                 collate_fn=collate_fn, pin_memory=False)
-    test_dataloader = DataLoader(ChaojieDataset(test_files, test=True), batch_size=1, shuffle=False, pin_memory=False)
+    test_dataloader = DataLoader(RemoteDataLoader(test_files, test=True), batch_size=1, shuffle=False, pin_memory=False)
     # scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer,"max",verbose=1,patience=3)
     scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1)
     # 4.5.5.1 define metrics
