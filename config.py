@@ -21,7 +21,7 @@ class DefaultConfigs(object):
     epochs = 40
     batch_size = 8
 
-    num_classes = 59
+    num_classes = 45
     seed = 888
     lr = 1e-4
     lr_decay = 1e-4

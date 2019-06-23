@@ -1,5 +1,6 @@
 import torch.nn as nn
 from utils.utils import load_state_dict_from_url
+from config import config
 
 
 __all__ = ['ResNet', 'resnet18', 'resnet34', 'resnet50', 'resnet101',
@@ -288,6 +289,23 @@ def resnext101_32x8d(pretrained=False, progress=True, **kwargs):
     return _resnet('resnext101_32x8d', Bottleneck, [3, 4, 23, 3],
                    pretrained, progress, **kwargs)
 
+resnetDict = {
+    'resnet18':resnet18,
+    'resnet34':resnet34,
+    'resnet50':resnet50,
+    'resnet101':resnet101,
+    'resnet152':resnet152,
+    'resnext50':resnext50_32x4d,
+    'resnext101':resnext101_32x8d
+}
+
+def getResnet(name):
+    model = resnetDict.get(name)(pretrained = True)
+    model.avgpool = nn.AdaptiveAvgPool2d(1)
+    model.fc = nn.Linear(2048,config.num_classes)
+    return model
+
+
 if __name__ == '__main__':
-    res50 = resnet50(True, True)
-    print(res50)
+    model = getResnet(config.model_name)
+    print(model)
