@@ -64,7 +64,7 @@ def test(test_loader, model, folds):
     csv_map = OrderedDict({"filename": [], "probability": []})
     model.cuda()
     model.eval()
-    with open("./submit/baseline.json", "w", encoding="utf-8") as f:
+    with open("./submit/baseline.txt", "w", encoding="utf-8") as f:
         submit_results = []
         for i, (input, filepath) in enumerate(tqdm(test_loader)):
             # 3.2 change everything to cuda and get only basename
@@ -87,10 +87,13 @@ def test(test_loader, model, folds):
         result["probability"] = result["probability"].map(lambda x: [float(i) for i in x.split(";")])
         for index, row in result.iterrows():
             pred_label = np.argmax(row['probability'])
-            if pred_label > 43:
-                pred_label = pred_label + 2
-            submit_results.append({"image_id": row['filename'], "disease_class": pred_label})
-        json.dump(submit_results, f, ensure_ascii=False, cls=MyEncoder)
+            result_str = '{} {}\r\n'.format(row['filename'], pred_label)
+
+            f.writelines(result_str)
+            # if pred_label > 43:
+            #     pred_label = pred_label + 2
+        #     submit_results.append({"image_id": row['filename'], "disease_class": pred_label})
+        # json.dump(submit_results, f, ensure_ascii=False, cls=MyEncoder)
 
 
 # 4. more details to build main function
