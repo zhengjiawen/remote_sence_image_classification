@@ -17,6 +17,11 @@ def save_checkpoint(state, is_best,fold):
     if is_best:
         shutil.copyfile(filename, config.best_models + config.model_name+ os.sep +str(fold)  + os.sep + 'model_best.pth.tar')
 
+def save_loss_npy(name, loss_list):
+    loss_np = np.array(loss_list, dtype=float)
+    loss_path = os.path.join(config.weights, name)
+    np.save(loss_path, loss_np)
+
 class AverageMeter(object):
     """Computes and stores the average and current value"""
     def __init__(self):
