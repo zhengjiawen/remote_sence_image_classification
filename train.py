@@ -166,6 +166,9 @@ def main():
     train_top1 = AverageMeter()
     train_top2 = AverageMeter()
     valid_loss = [np.inf, 0, 0]
+
+    valid_loss_list = []
+    train_losses_list = []
     model.train()
     # logs
     log.write('** start training here! **\n')
@@ -207,10 +210,16 @@ def main():
                     train_losses.avg, train_top1.avg, train_top2.avg, str(best_precision_save),
                     time_to_str((timer() - start), 'min'))
                 , end='', flush=True)
+            train_losses_list.append([train_losses.avg, train_top1.avg, train_top2.avg])
+            train_losses.reset()
+            train_top1.reset()
+            train_top2.reset()
         # evaluate
         lr = get_learning_rate(optimizer)
         # evaluate every half epoch
         valid_loss = evaluate(val_dataloader, model, criterion)
+        valid_loss_list.append(valid_loss_list)
+
         is_best = valid_loss[1] > best_precision1
         best_precision1 = max(valid_loss[1], best_precision1)
         try:
@@ -240,6 +249,10 @@ def main():
         time.sleep(0.01)
     best_model = torch.load(
         config.best_models + os.sep + config.model_name + os.sep + str(fold) + os.sep + 'model_best.pth.tar')
+    # covert loss list to np, n*3
+    save_loss_npy('train_loss.npy', train_losses_list)
+    save_loss_npy('val_loss.npy', valid_loss_list)
+
     model.load_state_dict(best_model["state_dict"])
     test(test_dataloader, model, fold)
 

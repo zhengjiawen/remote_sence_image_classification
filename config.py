@@ -10,7 +10,7 @@ class DefaultConfigs(object):
 
     #1.string parameters
 
-    model_name = "resnet50"
+    model_name = "resnext50"
     weights = "./checkpoints/"
     best_models = weights + "best_model/"
     submit = "./submit/"
