@@ -86,7 +86,7 @@ def test(test_loader, model, folds):
         result = pd.DataFrame(csv_map)
         result["probability"] = result["probability"].map(lambda x: [float(i) for i in x.split(";")])
         for index, row in result.iterrows():
-            pred_label = np.argmax(row['probability'])
+            pred_label = np.argmax(row['probability'])+1
             result_str = '{} {}\r\n'.format(row['filename'], pred_label)
 
             f.writelines(result_str)
@@ -113,13 +113,18 @@ def main():
     if not os.path.exists(config.best_models + config.model_name + os.sep + str(fold) + os.sep):
         os.makedirs(config.best_models + config.model_name + os.sep + str(fold) + os.sep)
         # 4.2 get model and optimizer
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
     model = getResnet(config.model_name)
+    if torch.cuda.device_count() > 1:
+        model = nn.DataParallel(model)
+    model.to(device)
     # model = torch.nn.DataParallel(model)
-    model.cuda()
+    # model.cuda()
     # optimizer = optim.SGD(model.parameters(),lr = config.lr,momentum=0.9,weight_decay=config.weight_decay)
     optimizer = optim.Adam(model.parameters(), lr=config.lr, amsgrad=True, weight_decay=config.weight_decay)
-    # criterion = nn.CrossEntropyLoss().cuda()
-    criterion = FocalLoss().cuda()
+    criterion = nn.CrossEntropyLoss().cuda()
+    # criterion = FocalLoss().cuda()
     log = Logger()
     log.open(config.logs + "log_train.txt", mode="a")
     log.write("\n----------------------------------------------- [START %s] %s\n\n" % (
@@ -140,10 +145,10 @@ def main():
         optimizer.load_state_dict(checkpoint["optimizer"])
 
     # 4.5 get files and split for K-fold dataset
-    # 4.5.1 read files
-    train_ = get_files(config.train_data, "train")
+    # 4.5.1 read filesf
+    train_ = get_files(config.train_data_path, "train")
     # val_data_list = get_files(config.val_data,"val")
-    test_files = get_files(config.test_data, "test")
+    test_files = get_files(config.test_data_path, "test")
 
     """ 
     #4.5.2 split
@@ -197,9 +202,9 @@ def main():
             loss = criterion(output, target)
 
             precision1_train, precision2_train = accuracy(output, target, topk=(1, 2))
-            train_losses.update(loss.item(), input.size(0))
-            train_top1.update(precision1_train[0], input.size(0))
-            train_top2.update(precision2_train[0], input.size(0))
+            train_losses.update(loss.item(), input.size(0)-1)
+            train_top1.update(precision1_train[0], input.size(0)-1)
+            train_top2.update(precision2_train[0], input.size(0)-1)
             # backward
             optimizer.zero_grad()
             loss.backward()
@@ -256,8 +261,8 @@ def main():
     save_loss_npy('train_loss.npy', train_losses_list)
     save_loss_npy('val_loss.npy', valid_loss_list)
 
-    model.load_state_dict(best_model["state_dict"])
-    test(test_dataloader, model, fold)
+    # model.load_state_dict(best_model["state_dict"])
+    # test(test_dataloader, model, fold)
 
 
 if __name__ == "__main__":

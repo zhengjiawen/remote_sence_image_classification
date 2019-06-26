@@ -1,7 +1,7 @@
 class DefaultConfigs(object):
     train_data_path = '/data/home/zjw/dataset/rssrai2019_scene_classification/train_all/'
     val_data_path = ''
-    test_data_path = '/data/home/zjw/dataset/rssrai2019_scene_classification/test/'
+    test_data_path = '/data/home/dengjinhong/dataset/rssrai2019_scene_classification/test/'
     relation_path = '/data/home/zjw/dataset/rssrai2019_scene_classification/ClsName2id.txt'
 
     test_model_name = 'resnext50'
@@ -17,10 +17,10 @@ class DefaultConfigs(object):
     best_models = weights + "best_model/"
     submit = "./submit/"
     logs = "./logs/"
-    gpus = "4"
+    gpus = "3,4,6,7"
 
     epochs = 40
-    batch_size = 8
+    batch_size = 40
 
     num_classes = 45
     seed = 888
