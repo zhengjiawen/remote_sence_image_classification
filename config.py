@@ -18,6 +18,8 @@ class DefaultConfigs(object):
     submit = "./submit/"
     logs = "./logs/"
     gpus = "3,4,6,7"
+    resume = False
+    resume_model_path = ''
 
     epochs = 40
     batch_size = 40

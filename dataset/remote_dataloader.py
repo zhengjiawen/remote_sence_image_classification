@@ -98,10 +98,13 @@ def get_files(root, mode):
         print("loading train dataset")
         for file in tqdm(all_images):
             all_data_path.append(file)
-            labels.append(file.split("/")[-2])
-        # string label to number label  eg.旱地->1
-        covert_labels = [int(claName2Id(x)) for x in labels]
-        all_files = pd.DataFrame({"filename": all_data_path, "label": covert_labels})
+            # string label to number label  eg.旱地->1
+            # label must start with 0, but it begin with 1 in gt
+            label = int(claName2Id[file.split("/")[-2]])-1
+            assert label >=0 and label <45
+            labels.append(label)
+
+        all_files = pd.DataFrame({"filename": all_data_path, "label": labels})
         return all_files
     else:
         print("check the mode please!")

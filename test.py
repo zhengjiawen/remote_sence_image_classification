@@ -44,7 +44,7 @@ def test(test_path, model):
         result = pd.DataFrame(csv_map)
         result["probability"] = result["probability"].map(lambda x: [float(i) for i in x.split(";")])
         for index, row in result.iterrows():
-            pred_label = np.argmax(row['probability'])
+            pred_label = np.argmax(row['probability'])+1
             result_str = '{} {}\r\n'.format(row['filename'], pred_label)
 
             f.writelines(result_str)

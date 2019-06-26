@@ -133,11 +133,11 @@ def main():
     start_epoch = 0
     best_precision1 = 0
     best_precision_save = 0
-    resume = False
+    resume = config.resume
 
     # 4.4 restart the training process
     if resume:
-        checkpoint = torch.load(config.best_models + str(fold) + "/model_best.pth.tar")
+        checkpoint = torch.load(config.resume_model_path)
         start_epoch = checkpoint["epoch"]
         fold = checkpoint["fold"]
         best_precision1 = checkpoint["best_precision1"]
