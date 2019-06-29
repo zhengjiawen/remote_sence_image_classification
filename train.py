@@ -123,8 +123,8 @@ def main():
     # model.cuda()
     # optimizer = optim.SGD(model.parameters(),lr = config.lr,momentum=0.9,weight_decay=config.weight_decay)
     optimizer = optim.Adam(model.parameters(), lr=config.lr, amsgrad=True, weight_decay=config.weight_decay)
-    criterion = nn.CrossEntropyLoss().cuda()
-    # criterion = FocalLoss().cuda()
+    # criterion = nn.CrossEntropyLoss().cuda()
+    criterion = FocalLoss().cuda()
     log = Logger()
     log.open(config.logs + "log_train.txt", mode="a")
     log.write("\n----------------------------------------------- [START %s] %s\n\n" % (
@@ -137,7 +137,7 @@ def main():
 
     # 4.4 restart the training process
     if resume:
-        checkpoint = torch.load(config.resume_model_path)
+        checkpoint = torch.load(config.best_models + str(fold) + "/model_best.pth.tar")
         start_epoch = checkpoint["epoch"]
         fold = checkpoint["fold"]
         best_precision1 = checkpoint["best_precision1"]
@@ -243,6 +243,8 @@ def main():
             "fold": fold,
             "valid_loss": valid_loss,
         }, is_best, fold)
+        save_loss_npy('all_train_loss_{}.npy'.format(epoch+1), train_losses_list)
+        save_loss_npy('all_val_loss_{}.npy'.format(epoch+1), valid_loss_list)
         # adjust learning rate
         # scheduler.step(valid_loss[1])
         print("\r", end="", flush=True)
@@ -258,8 +260,8 @@ def main():
     best_model = torch.load(
         config.best_models + os.sep + config.model_name + os.sep + str(fold) + os.sep + 'model_best.pth.tar')
     # covert loss list to np, n*3
-    save_loss_npy('train_loss.npy', train_losses_list)
-    save_loss_npy('val_loss.npy', valid_loss_list)
+    save_loss_npy('all_train_loss.npy', train_losses_list)
+    save_loss_npy('all_val_loss.npy', valid_loss_list)
 
     # model.load_state_dict(best_model["state_dict"])
     # test(test_dataloader, model, fold)

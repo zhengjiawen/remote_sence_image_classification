@@ -19,7 +19,7 @@ def save_checkpoint(state, is_best,fold):
 
 def save_loss_npy(name, loss_list):
     loss_np = np.array(loss_list, dtype=float)
-    loss_path = os.path.join(config.weights, name)
+    loss_path = os.path.join(config.weights,config.model_name, name)
     np.save(loss_path, loss_np)
 
 class AverageMeter(object):
